@@ -34,7 +34,7 @@
             if (isNaN(limit) || limit <= 0) limit = 500;
             statusEl.textContent = '⏳ Fetching comments...';
             downloadLink.style.display = 'none';
-            fetch(`https://9f9a-2601-152-302-fe92-e9c6-448-b96-84bd.ngrok-free.app/get_comments?username=${encodeURIComponent(user)}&limit=${limit}`)
+            fetch(`https://b292-2601-152-302-fe92-e9c6-448-b96-84bd.ngrok-free.app/get_comments?username=${encodeURIComponent(user)}&limit=${limit}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.error) {
