@@ -1,0 +1,87 @@
+/* style.css */
+
+/* Ensure the Inter font is applied if Tailwind's default isn't overridden by browser styles */
+body {
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom focus ring color to match the theme */
+input:focus, button:focus {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+}
+
+/* Styling for the custom file input (if you were to add one) */
+.file-input-button {
+    cursor: pointer;
+}
+
+/* Subtle animation for status messages */
+.status-message {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Styling for error messages */
+.status-error {
+    color: #f87171; /* Tailwind red-400 */
+    background-color: rgba(248, 113, 113, 0.1); /* Light red background */
+    border-left: 4px solid #f87171;
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem; /* rounded-md */
+    font-weight: 500; /* medium */
+}
+
+/* Styling for success messages */
+.status-success {
+    color: #34d399; /* Tailwind green-400 */
+    background-color: rgba(52, 211, 153, 0.1); /* Light green background */
+    border-left: 4px solid #34d399;
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem; /* rounded-md */
+    font-weight: 500; /* medium */
+}
+
+/* Styling for info/loading messages */
+.status-info {
+    color: #60a5fa; /* Tailwind blue-400 */
+    background-color: rgba(96, 165, 250, 0.1); /* Light blue background */
+    border-left: 4px solid #60a5fa;
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem; /* rounded-md */
+    font-weight: 500; /* medium */
+}
+
+/* Add a subtle gradient to the body or card for more depth (optional) */
+/*
+body.bg-slate-900 {
+    background-image: linear-gradient(to bottom right, #0f172a, #1e293b);
+}
+.bg-slate-800 {
+    background-image: linear-gradient(to bottom right, #1e293b, #334155);
+}
+*/
+
+/* Custom scrollbar for a more polished look (Webkit browsers) */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #1e293b; /* slate-800 */
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+    background: #f97316; /* orange-600 */
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #ea580c; /* orange-700 */
+}
+
