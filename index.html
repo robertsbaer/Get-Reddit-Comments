@@ -67,6 +67,12 @@
             </a>
         </div>
 
+        <!-- Creative Display Downloaded Comments Section -->
+        <div class="mt-10 w-full max-w-lg">
+            <label for="jsonFile" class="block text-sm font-medium text-slate-300 mb-2">Display Downloaded Comments</label>
+            <input type="file" id="jsonFile" accept=".json" class="block w-full text-slate-200 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 mb-4 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-colors duration-300">
+            <div id="commentsGrid" class="grid gap-4"></div>
+        </div>
     </div>
 
     <footer class="mt-12 text-center text-sm text-slate-500">
@@ -75,5 +81,41 @@
     </footer>
 
     <script src="script.js"></script>
+    <script>
+    // Display Downloaded Comments
+    document.getElementById('jsonFile').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            let comments;
+            try {
+                comments = JSON.parse(event.target.result);
+            } catch (err) {
+                document.getElementById('commentsGrid').innerHTML = '<div class="text-red-400">Invalid JSON file.</div>';
+                return;
+            }
+            if (!Array.isArray(comments)) {
+                document.getElementById('commentsGrid').innerHTML = '<div class="text-red-400">JSON does not contain an array of comments.</div>';
+                return;
+            }
+            // Render comments
+            document.getElementById('commentsGrid').innerHTML = comments.map(comment => `
+                <div class="bg-slate-700 border border-slate-600 rounded-lg p-4 shadow hover:shadow-lg transition-all duration-300">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-orange-400 font-semibold text-sm">${comment.subreddit}</span>
+                        <span class="text-xs text-slate-400">${new Date(comment.created_utc * 1000).toLocaleString()}</span>
+                    </div>
+                    <div class="text-slate-200 mb-2">${comment.body.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
+                    <div class="flex items-center justify-between">
+                        <a href="https://reddit.com${comment.link_permalink}" target="_blank" class="text-blue-400 hover:underline text-xs">View Thread</a>
+                        <span class="text-green-400 text-xs font-mono">Score: ${comment.score}</span>
+                    </div>
+                </div>
+            `).join('');
+        };
+        reader.readAsText(file);
+    });
+    </script>
 </body>
 </html>
