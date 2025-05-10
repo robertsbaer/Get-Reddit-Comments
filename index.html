@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reddit Comment Downloader</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 1em; }
+        label, input, button { display: block; width: 100%; margin-bottom: 0.5em; }
+        button { padding: 0.5em; }
+        .status { margin-top: 1em; font-weight: bold; }
+        a.download { display: block; margin-top: 1em; }
+    </style>
+</head>
+<body>
+    <h1>Reddit Comment Downloader</h1>
+    <label for="username">Reddit Username:</label>
+    <input id="username" type="text" placeholder="e.g. u/jsmith or jsmith" />
+    <label for="limit">Max Comments (optional):</label>
+    <input id="limit" type="number" placeholder="e.g. 500" />
+    <button id="fetch">Fetch Comments</button>
+    <div class="status" id="status"></div>
+    <a id="downloadLink" class="download" style="display:none"></a>
+    <script>
+        const statusEl = document.getElementById('status');
+        const downloadLink = document.getElementById('downloadLink');
+        document.getElementById('fetch').addEventListener('click', () => {
+            let user = document.getElementById('username').value.trim();
+            if (!user) {
+                statusEl.textContent = '❗️ Enter a Reddit username.';
+                return;
+            }
+            user = user.replace(/^u\//i, '');
+            let limit = parseInt(document.getElementById('limit').value);
+            if (isNaN(limit) || limit <= 0) limit = 500;
+            statusEl.textContent = '⏳ Fetching comments...';
+            downloadLink.style.display = 'none';
+            fetch(`https://9f9a-2601-152-302-fe92-e9c6-448-b96-84bd.ngrok-free.app/get_comments?username=${encodeURIComponent(user)}&limit=${limit}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        statusEl.textContent = '❌ ' + data.error;
+                        return;
+                    }
+                    const comments = data.comments || [];
+                    statusEl.textContent = `✅ Fetched ${comments.length} comments.`;
+                    const blob = new Blob([JSON.stringify(comments, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    downloadLink.href = url;
+                    downloadLink.download = `${user}_comments.json`;
+                    downloadLink.textContent = '📥 Download JSON';
+                    downloadLink.style.display = 'block';
+                })
+                .catch(err => {
+                    console.error(err);
+                    statusEl.textContent = '❌ Error fetching comments.';
+                });
+        });
+    </script>
+</body>
+</html>
