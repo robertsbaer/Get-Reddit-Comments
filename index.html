@@ -67,11 +67,22 @@
             </a>
         </div>
 
-        <!-- Creative Display Downloaded Comments Section -->
+        <!-- Creative Display Downloaded Comments Section with Pagination and Search -->
         <div class="mt-10 w-full max-w-lg">
             <label for="jsonFile" class="block text-sm font-medium text-slate-300 mb-2">Display Downloaded Comments</label>
             <input type="file" id="jsonFile" accept=".json" class="block w-full text-slate-200 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 mb-4 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-colors duration-300">
+
+            <div class="flex flex-col md:flex-row md:items-center md:space-x-4 space-y-2 md:space-y-0 mb-4">
+                <input type="text" id="searchInput" placeholder="Search comments..." class="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-200 placeholder-slate-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-colors duration-300">
+                <select id="perPageSelect" class="w-32 px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-200 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-colors duration-300">
+                    <option value="20">20 per page</option>
+                    <option value="60">60 per page</option>
+                    <option value="100">100 per page</option>
+                </select>
+            </div>
+
             <div id="commentsGrid" class="grid gap-4"></div>
+            <div id="paginationControls" class="flex justify-between items-center mt-4"></div>
         </div>
     </div>
 
@@ -82,7 +93,60 @@
 
     <script src="script.js"></script>
     <script>
-    // Display Downloaded Comments
+    // Pagination and Search for Downloaded Comments
+    let allComments = [];
+    let filteredComments = [];
+    let currentPage = 1;
+    let perPage = 20;
+    let searchTerm = "";
+
+    function renderComments() {
+        const grid = document.getElementById('commentsGrid');
+        const pagination = document.getElementById('paginationControls');
+        // Filter by search term
+        filteredComments = allComments.filter(comment =>
+            comment.body.toLowerCase().includes(searchTerm) ||
+            comment.subreddit.toLowerCase().includes(searchTerm)
+        );
+        const total = filteredComments.length;
+        const totalPages = Math.max(1, Math.ceil(total / perPage));
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        // Paginate
+        const start = (currentPage - 1) * perPage;
+        const end = start + perPage;
+        const pageComments = filteredComments.slice(start, end);
+
+        // Render comments
+        if (total === 0) {
+            grid.innerHTML = '<div class="text-slate-400 text-center">No comments found.</div>';
+        } else {
+            grid.innerHTML = pageComments.map(comment => `
+                <div class="bg-slate-700 border border-slate-600 rounded-lg p-4 shadow hover:shadow-lg transition-all duration-300">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-orange-400 font-semibold text-sm">${comment.subreddit}</span>
+                        <span class="text-xs text-slate-400">${new Date(comment.created_utc * 1000).toLocaleString()}</span>
+                    </div>
+                    <div class="text-slate-200 mb-2">${comment.body.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
+                    <div class="flex items-center justify-between">
+                        <a href="https://reddit.com${comment.link_permalink}" target="_blank" class="text-blue-400 hover:underline text-xs">View Thread</a>
+                        <span class="text-green-400 text-xs font-mono">Score: ${comment.score}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render pagination controls
+        pagination.innerHTML = `
+            <button ${currentPage === 1 ? "disabled" : ""} class="px-4 py-2 rounded bg-slate-700 border border-slate-600 text-slate-300 hover:bg-slate-600 disabled:opacity-50" id="prevPageBtn">&larr; Prev</button>
+            <span class="text-slate-400">Page ${currentPage} of ${totalPages}</span>
+            <button ${currentPage === totalPages ? "disabled" : ""} class="px-4 py-2 rounded bg-slate-700 border border-slate-600 text-slate-300 hover:bg-slate-600 disabled:opacity-50" id="nextPageBtn">Next &rarr;</button>
+        `;
+
+        document.getElementById('prevPageBtn').onclick = () => { if (currentPage > 1) { currentPage--; renderComments(); }};
+        document.getElementById('nextPageBtn').onclick = () => { if (currentPage < totalPages) { currentPage++; renderComments(); }};
+    }
+
     document.getElementById('jsonFile').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -99,22 +163,25 @@
                 document.getElementById('commentsGrid').innerHTML = '<div class="text-red-400">JSON does not contain an array of comments.</div>';
                 return;
             }
-            // Render comments
-            document.getElementById('commentsGrid').innerHTML = comments.map(comment => `
-                <div class="bg-slate-700 border border-slate-600 rounded-lg p-4 shadow hover:shadow-lg transition-all duration-300">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-orange-400 font-semibold text-sm">${comment.subreddit}</span>
-                        <span class="text-xs text-slate-400">${new Date(comment.created_utc * 1000).toLocaleString()}</span>
-                    </div>
-                    <div class="text-slate-200 mb-2">${comment.body.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
-                    <div class="flex items-center justify-between">
-                        <a href="https://reddit.com${comment.link_permalink}" target="_blank" class="text-blue-400 hover:underline text-xs">View Thread</a>
-                        <span class="text-green-400 text-xs font-mono">Score: ${comment.score}</span>
-                    </div>
-                </div>
-            `).join('');
+            allComments = comments;
+            currentPage = 1;
+            searchTerm = "";
+            document.getElementById('searchInput').value = "";
+            renderComments();
         };
         reader.readAsText(file);
+    });
+
+    document.getElementById('perPageSelect').addEventListener('change', function(e) {
+        perPage = parseInt(e.target.value, 10);
+        currentPage = 1;
+        renderComments();
+    });
+
+    document.getElementById('searchInput').addEventListener('input', function(e) {
+        searchTerm = e.target.value.trim().toLowerCase();
+        currentPage = 1;
+        renderComments();
     });
     </script>
 </body>
